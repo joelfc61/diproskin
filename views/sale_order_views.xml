@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_order_form_inherit_diproskin" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.diproskin</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_draft']" position="after">
+                <button name="action_print_so" width="160" class="oe_highlight btn-success" string="IMPRIMIR REMISIÓN" type="object"/>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="delivery_id" string="Entrega" options="{'no_quick_create':True,'no_create_edit':True,'no_open':True}"/>
+                <field name="pick_id" string="Surtido"  options="{'no_quick_create':True,'no_create_edit':True,'no_open':True}"/>
+                <field name="agent_id" string="Marcado"  options="{'no_quick_create':True,'no_create_edit':True,'no_open':True}"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="before">
+                <field name="barcode_scan"/>
+            </xpath>
+            <xpath expr="//page/field[@name='order_line']/tree/field[@name='name']" position="before">
+                <field name="pricelist_id" string="Precio" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

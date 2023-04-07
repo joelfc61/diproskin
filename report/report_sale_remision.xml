@@ -1,0 +1,829 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="report_sale_remision">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="doc">
+              <div class="row">
+                    <div class="col" style="width: 65%;">
+                    <img t-if="doc.company_id.logo" t-attf-src="/logo.png?company={{ doc.company_id.id }}" style="max-height: 275px; max-width: 320px;"/>
+                    </div>
+                    <div class="col" style="width: 35%; font-size: 100%; text-align: top; line-height: 140%;">
+                        <span><strong> Diproskin
+                           <br/>
+                            RFC: DIP010205ABC
+                           <br/>
+                            Tel.: 364578447
+                           <br/>
+                            AV. Primavera # 2836
+                        </strong></span>
+                    </div>
+                </div>
+                <br/>
+                <div class="col" style="width: 100%; font-size: 140%;">
+                        <span><strong><center>
+                            ORIGINAL
+                        </center></strong></span>
+                </div>
+
+                <div class="col" style="width: 50%; font-size: 140%;">
+                        <span><strong>
+                            REMISIÓN:
+                        </strong></span>
+                        <span t-field="doc.name"/>
+                </div>
+
+                <div class="col" style="width: 50%; font-size: 100%;">
+                        <span><strong>
+                            FECHA:
+                        </strong></span>
+                        <span t-field="doc.date_order"/>
+                </div>
+
+
+               <table class="table table-borderless" WIDTH="100%" style="padding: 0px; border-collapse: collapse; background-color:#F9F9F9;border-bottom:4px solid black;">
+                <tr style="border: 0px;">
+
+                  <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;font-weight: bold;">Nombre:</span>
+                  </td>
+                  <td WIDTH="45%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.name"/>
+                  </td>
+
+                  <td WIDTH="4%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;font-weight: bold;">Tels:</span>
+                  </td>
+                  <td WIDTH="15%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.phone"/>
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.mobile"/>
+                  </td>
+
+               </tr>
+
+               <tr style="border: 0px;">
+
+                 <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                   <span style="color:#000000; font-size: 100%;font-weight: bold;">Dirección:</span>
+                 </td>
+                 <td WIDTH="45%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.street"/>
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.street2"/>
+                      CP.
+                      <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.zip"/>
+                 </td>
+
+                 <td WIDTH="4%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                   <span style="color:#000000; font-size: 100%;font-weight: bold;">Edo:</span>
+                 </td>
+                 <td WIDTH="15%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.city"/>
+                     /
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.state_id.name"/>
+                     </td>
+               </tr>
+              </table>
+
+              <div t-if="doc.validity_date and doc.state in ['draft', 'sent']" class="col-auto col-3 mw-100 mb-2" name="expiration_date">
+                    <strong>Expiration:</strong>
+                    <p class="m-0" t-field="doc.validity_date"/>
+              </div>
+              <!-- Is there a discount on at least one line? -->
+              <t t-set="display_discount" t-value="any(l.discount for l in doc.order_line)"/>
+
+                <table class="table table-sm o_main_table">
+                  <!-- In case we want to repeat the header, remove "display: table-row-group" -->
+
+
+                 <t t-set="suma" t-value="0"/>
+
+                 <thead style="display: table-row-group">
+                    <tr>
+                        <td WIDTH="8%" name="th_barcode" class="text-left"><STRONG>CÓDIGO</STRONG></td>
+                        <td WIDTH="10%" name="th_quantity" class="text-right"><STRONG>CANTIDAD</STRONG></td>
+                        <td WIDTH="50%" name="th_description" class="text-left"><STRONG>PRODUCTO</STRONG></td>
+                        <td name="th_priceunit" class="text-right"><STRONG>PRECIO</STRONG></td>
+                        <td name="th_discount" t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
+                            <span><STRONG>DESC.%</STRONG></span>
+                        </td>
+                        <!--<th name="th_taxes" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">Impuestos</th>-->
+                        <td name="th_subtotal" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                            <span groups="account.group_show_line_subtotals_tax_excluded"><STRONG>IMPORTE</STRONG></span>
+                            <span groups="account.group_show_line_subtotals_tax_included"><STRONG>TOTAL</STRONG></span>
+                        </td>
+
+
+                        <td name="th_subtotal" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                            <span><STRONG>PUBLICO</STRONG></span>
+
+                        </td>
+
+
+
+
+                    </tr>
+                 </thead>
+                 <tbody class="sale_tbody">
+
+                    <t t-set="current_subtotal" t-value="0"/>
+
+                    <t t-foreach="doc.order_line" t-as="line">
+
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+
+                        <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
+                            <t t-if="not line.display_type">
+                              <td name="td_barcode" style="padding: 2px;height: 1px;border-collapse: collapse"><span style="font-size: 90%" t-field="line.product_id.barcode"/></td>
+
+                                 <td name="td_quantity" class="text-center" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-field="line.product_uom_qty"/>
+                                   <!-- <span t-field="line.product_uom" groups="uom.group_uom"/>-->
+
+                                    <t t-set="suma" t-value="suma + line.product_uom_qty"/>
+
+                                </td>
+
+                                <td name="td_name" style="padding: 2px;height: 1px;border-collapse: collapse"><span style="font-size: 90%" t-field="line.product_id.name"/></td>
+
+                                <td name="td_priceunit" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.price_unit"/>
+                                </td>
+                                <td t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.discount"/>
+                                </td>
+                               <!-- <td name="td_taxes" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.tax_id))"/>
+                                </td> -->
+                                <td name="td_subtotal" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <!--<span style="font-size: 90%" t-field="line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                                    <span style="font-size: 90%" t-field="line.price_total" groups="account.group_show_line_subtotals_tax_included"/>-->
+
+                                    <span style="font-size: 90%" t-field="line.price_total"/>
+                                </td>
+
+
+
+                                <td name="td_subtotal" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+
+
+                                    <span style="font-size: 90%" t-field="line.product_id.list_price"/>
+
+                                </td>
+
+
+
+
+                            </t>
+                            <t t-if="line.display_type == 'line_section'">
+                                <td name="td_section_line" colspan="99" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.name"/>
+                                </td>
+                                <t t-set="current_section" t-value="line"/>
+                                <t t-set="current_subtotal" t-value="0"/>
+                            </t>
+                            <t t-if="line.display_type == 'line_note'">
+                                <td name="td_note_line" colspan="99" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.name"/>
+                                </td>
+                            </t>
+                        </tr>
+
+                        <t t-if="current_section and (line_last or doc.order_line[line_index+1].display_type == 'line_section')">
+                            <tr class="is-subtotal text-right">
+                            </tr>
+                        </t>
+                    </t>
+                </tbody>
+            </table>
+
+
+            <div class="clearfix" name="so_total_summary">
+                <div id="total" class="row" name="total">
+                    <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+                      <div style="position:absolute;right:5mm;">
+                        <table class="table table-borderless" style="border-bottom:4px solid black">
+                            <!--<tr class="border-black o_subtotal" style="">-->
+                                 <!-- <td name="td_amount_untaxed_label" style="padding: 2px;height: 1px;border-collapse: collapse"><strong>Subtotal</strong></td>
+                                <td name="td_amount_untaxed" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-field="doc.amount_untaxed"/>
+                                </td>  -->
+                            <!--</tr>-->
+                            <!--<t t-foreach="doc.amount_by_group" t-as="amount_by_group">-->
+                            <!--    <tr style="">-->
+                                     <!-- <t t-if="amount_by_group[5] == 1 and doc.amount_untaxed == amount_by_group[2]">
+                                        <td name="td_amount_by_group_label_3" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[0]"/>
+                                            <span>&amp;nbsp;<span>on</span>&amp;nbsp;<t t-esc="amount_by_group[2]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: doc.pricelist_id.currency_id}"/></span>
+                                        </td>
+                                        <td name="td_amount_by_group_3" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[1]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: doc.pricelist_id.currency_id}"/>
+                                        </td>
+                                     </t>
+                                    <t t-else="">
+                                        <td name="td_amount_by_group_label" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[0]"/>
+                                        </td>
+                                        <td name="td_amount_by_group" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[1]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: doc.pricelist_id.currency_id}"/>
+                                        </td>
+                                    </t>-->
+                            <!--    </tr>-->
+                            <!--</t>-->
+                            <tr class="border-black o_total">
+                                <td name="td_amount_total_label" style="padding: 2px;height: 1px;border-collapse: collapse"><strong>Total</strong></td>
+                                <td name="td_amount_total" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-field="doc.amount_total"/>
+                                </td>
+                            </tr>
+                        </table>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+
+  <table>
+   <tr>
+
+
+     <td style="padding: 5px;height: 1px;border-collapse: collapse">
+       <strong>Piezas totales:  <span t-esc="suma" t-options="{&quot;widget&quot;: &quot;float&quot;, &quot;precision&quot;: 0}"/></strong>
+      </td>
+
+    </tr>
+</table>
+
+
+
+
+
+
+
+              <br/>
+              <br/>
+              <br/>
+
+              <table class="table table-borderless" WIDTH="100%" style="padding: 0px; border-collapse: collapse; background-color:#F9F9F9;border-bottom:4px solid black">
+
+              <tr style="border: 0px;">
+
+                <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                   <span style="color:#000000; font-size: 70%; text-align: justify;">DEBO Y PAGARÉ INCONDICIONALMENTE A LA ORDEN DE
+                   <STRONG>GABRIEL HUERTA RIVERA</STRONG>
+                   EN ESTA CIUDAD O EN CUALQUIERA QUE SE ME ENCUENTRE EL DÍA <span t-field="doc.date_order"/> LA CANTIDAD DE <span t-field="doc.amount_total"/>
+                   VALOR DE LAS MERCANCIAS QUE HE RECIBIDO EN MI ENTERA SATISFACCIÓN. ESTE PAGARÉ ES MERCANTIL Y ESTA REGIDO POR LA LEY DE TITULOS Y OPERACIONES DE CRÉDITO
+                   EN SU ARTÍCULO 173 PARTE FINAL Y ARTÍCULOS CORRELATIVOS POR NO SER PAGARÉ DOMICILIADO. DE NO PAGAR A SU VECIMIENTO CAUSARÁ INTERES MORATORIO % DE MENSUAL
+                   DESDE SU VENCIMIENTO
+                   </span>
+
+                  <br/>
+                  <br/>
+
+                    <span style="color:#000000; font-size: 70%;text-align: justify;">
+                      ACEPTO <span t-field="doc.partner_id.name"/> FIRMA______________________________________
+                   </span>
+                </td>
+             </tr>
+             </table>
+
+             <p style="page-break-after: always;"/>
+
+              <div class="row">
+                    <div class="col" style="width: 65%;">
+                    <img t-if="doc.company_id.logo" t-attf-src="/logo.png?company={{ doc.company_id.id }}" style="max-height: 275px; max-width: 320px;"/>
+                    </div>
+                    <div class="col" style="width: 35%; font-size: 100%; text-align: top; line-height: 140%;">
+                        <span><strong> Diproskin
+                           <br/>
+                            RFC: DIP010205ABC
+                           <br/>
+                            Tel.: 364578447
+                           <br/>
+                            AV. Primavera # 2836
+                        </strong></span>
+                    </div>
+                </div>
+                <br/>
+                <div class="col" style="width: 100%; font-size: 140%;">
+                        <span><strong><center>
+                            COPIA 1
+                        </center></strong></span>
+                </div>
+
+                <div class="col" style="width: 50%; font-size: 140%;">
+                        <span><strong>
+                            REMISIÓN:
+                        </strong></span>
+                        <span t-field="doc.name"/>
+                </div>
+
+
+                 <div class="col" style="width: 50%; font-size: 100%;">
+                        <span><strong>
+                            FECHA:
+                        </strong></span>
+                        <span t-field="doc.date_order"/>
+                </div>
+
+
+
+               <table class="table table-borderless" WIDTH="100%" style="padding: 0px; border-collapse: collapse; background-color:#F9F9F9;border-bottom:4px solid black;">
+                <tr style="border: 0px;">
+
+                  <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;font-weight: bold;">Nombre:</span>
+                  </td>
+                  <td WIDTH="45%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.name"/>
+                  </td>
+
+                  <td WIDTH="4%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;font-weight: bold;">Tels:</span>
+                  </td>
+                  <td WIDTH="15%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.phone"/>
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.mobile"/>
+                  </td>
+
+               </tr>
+
+               <tr style="border: 0px;">
+
+                 <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                   <span style="color:#000000; font-size: 100%;font-weight: bold;">Dirección:</span>
+                 </td>
+                 <td WIDTH="45%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.street"/>
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.street2"/>
+                      CP.
+                      <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.zip"/>
+                 </td>
+
+                 <td WIDTH="4%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                   <span style="color:#000000; font-size: 100%;font-weight: bold;">Edo:</span>
+                 </td>
+                 <td WIDTH="15%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.city"/>
+                     /
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.state_id.name"/>
+                     </td>
+               </tr>
+              </table>
+
+              <div t-if="doc.validity_date and doc.state in ['draft', 'sent']" class="col-auto col-3 mw-100 mb-2" name="expiration_date">
+                    <strong>Expiration:</strong>
+                    <p class="m-0" t-field="doc.validity_date"/>
+              </div>
+              <!-- Is there a discount on at least one line? -->
+              <t t-set="display_discount" t-value="any(l.discount for l in doc.order_line)"/>
+
+                <table class="table table-sm o_main_table">
+                  <!-- In case we want to repeat the header, remove "display: table-row-group" -->
+                 <thead style="display: table-row-group">
+                    <tr>
+                        <td WIDTH="8%" name="th_barcode" class="text-left"><STRONG>CÓDIGO</STRONG></td>
+                        <td WIDTH="10%" name="th_quantity" class="text-right"><STRONG>CANTIDAD</STRONG></td>
+                        <td WIDTH="50%" name="th_description" class="text-left"><STRONG>PRODUCTO</STRONG></td>
+                        <td name="th_priceunit" class="text-right"><STRONG>PRECIO</STRONG></td>
+                        <td name="th_discount" t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
+                            <span><STRONG>DESC.%</STRONG></span>
+                        </td>
+                        <!--<th name="th_taxes" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">Impuestos</th>-->
+                        <td name="th_subtotal" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                            <span groups="account.group_show_line_subtotals_tax_excluded"><STRONG>IMPORTE</STRONG></span>
+                            <span groups="account.group_show_line_subtotals_tax_included"><STRONG>TOTAL</STRONG></span>
+                        </td>
+
+
+
+                         <td name="th_subtotal" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                            <span><STRONG>PUBLICO</STRONG></span>
+
+                        </td>
+
+
+
+
+                    </tr>
+                 </thead>
+                 <tbody class="sale_tbody">
+
+                    <t t-set="current_subtotal" t-value="0"/>
+
+                    <t t-foreach="doc.order_line" t-as="line">
+
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+
+                        <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
+                            <t t-if="not line.display_type">
+                              <td name="td_barcode" style="padding: 2px;height: 1px;border-collapse: collapse"><span style="font-size: 90%" t-field="line.product_id.barcode"/></td>
+
+                                 <td name="td_quantity" class="text-center" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-field="line.product_uom_qty"/>
+                                   <!-- <span t-field="line.product_uom" groups="uom.group_uom"/>-->
+                                </td>
+
+                                <td name="td_name" style="padding: 2px;height: 1px;border-collapse: collapse"><span style="font-size: 90%" t-field="line.product_id.name"/></td>
+
+                                <td name="td_priceunit" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.price_unit"/>
+                                </td>
+                                <td t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.discount"/>
+                                </td>
+                               <!-- <td name="td_taxes" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.tax_id))"/>
+                                </td> -->
+                                <td name="td_subtotal" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                   <!-- <span style="font-size: 90%" t-field="line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                                    <span style="font-size: 90%" t-field="line.price_total" groups="account.group_show_line_subtotals_tax_included"/>-->
+
+                                    <span style="font-size: 90%" t-field="line.price_total"/>
+                                </td>
+
+
+
+                                 <td name="td_subtotal" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+
+
+                                    <span style="font-size: 90%" t-field="line.product_id.list_price"/>
+
+                                </td>
+
+
+
+
+
+                            </t>
+                            <t t-if="line.display_type == 'line_section'">
+                                <td name="td_section_line" colspan="99" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.name"/>
+                                </td>
+                                <t t-set="current_section" t-value="line"/>
+                                <t t-set="current_subtotal" t-value="0"/>
+                            </t>
+                            <t t-if="line.display_type == 'line_note'">
+                                <td name="td_note_line" colspan="99" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.name"/>
+                                </td>
+                            </t>
+                        </tr>
+
+                        <t t-if="current_section and (line_last or doc.order_line[line_index+1].display_type == 'line_section')">
+                            <tr class="is-subtotal text-right">
+                            </tr>
+                        </t>
+                    </t>
+                </tbody>
+            </table>
+
+
+            <div class="clearfix" name="so_total_summary">
+                <div id="total" class="row" name="total">
+                    <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+                      <div style="position:absolute;right:5mm;">
+                        <table class="table table-borderless" style="border-bottom:4px solid black">
+                            <!--<tr class="border-black o_subtotal" style="">-->
+                                 <!-- <td name="td_amount_untaxed_label" style="padding: 2px;height: 1px;border-collapse: collapse"><strong>Subtotal</strong></td>
+                                <td name="td_amount_untaxed" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-field="doc.amount_untaxed"/>
+                                </td>  -->
+                            <!--</tr>-->
+                            <!--<t t-foreach="doc.amount_by_group" t-as="amount_by_group">-->
+                            <!--    <tr style="">-->
+                                     <!-- <t t-if="amount_by_group[5] == 1 and doc.amount_untaxed == amount_by_group[2]">
+                                        <td name="td_amount_by_group_label_3" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[0]"/>
+                                            <span>&amp;nbsp;<span>on</span>&amp;nbsp;<t t-esc="amount_by_group[2]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: doc.pricelist_id.currency_id}"/></span>
+                                        </td>
+                                        <td name="td_amount_by_group_3" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[1]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: doc.pricelist_id.currency_id}"/>
+                                        </td>
+                                     </t>
+                                    <t t-else="">
+                                        <td name="td_amount_by_group_label" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[0]"/>
+                                        </td>
+                                        <td name="td_amount_by_group" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[1]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: doc.pricelist_id.currency_id}"/>
+                                        </td>
+                                    </t>-->
+                            <!--    </tr>-->
+                            <!--</t>-->
+                            <tr class="border-black o_total">
+                                <td name="td_amount_total_label" style="padding: 2px;height: 1px;border-collapse: collapse"><strong>Total</strong></td>
+                                <td name="td_amount_total" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-field="doc.amount_total"/>
+                                </td>
+                            </tr>
+                        </table>
+                      </div>
+                    </div>
+                </div>
+            </div>
+              <br/>
+              <br/>
+              <br/>
+
+              <table class="table table-borderless" WIDTH="100%" style="padding: 0px; border-collapse: collapse; background-color:#F9F9F9;border-bottom:4px solid black">
+
+              <tr style="border: 0px;">
+
+                <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                   <span style="color:#000000; font-size: 70%; text-align: justify;">DEBO Y PAGARÉ INCONDICIONALMENTE A LA ORDEN DE
+                   <STRONG>GABRIEL HUERTA RIVERA</STRONG>
+                   EN ESTA CIUDAD O EN CUALQUIERA QUE SE ME ENCUENTRE EL DÍA <span t-field="doc.date_order"/> LA CANTIDAD DE <span t-field="doc.amount_total"/>
+                   VALOR DE LAS MERCANCIAS QUE HE RECIBIDO EN MI ENTERA SATISFACCIÓN. ESTE PAGARÉ ES MERCANTIL Y ESTA REGIDO POR LA LEY DE TITULOS Y OPERACIONES DE CRÉDITO
+                   EN SU ARTÍCULO 173 PARTE FINAL Y ARTÍCULOS CORRELATIVOS POR NO SER PAGARÉ DOMICILIADO. DE NO PAGAR A SU VECIMIENTO CAUSARÁ INTERES MORATORIO % DE MENSUAL
+                   DESDE SU VENCIMIENTO
+                   </span>
+
+                  <br/>
+                  <br/>
+
+                    <span style="color:#000000; font-size: 70%;text-align: justify;">
+                      ACEPTO <span t-field="doc.partner_id.name"/> FIRMA______________________________________
+                   </span>
+                </td>
+             </tr>
+             </table>
+
+
+
+
+
+
+
+
+
+
+             <p style="page-break-after: always;"/>
+
+              <div class="row">
+                    <div class="col" style="width: 65%;">
+                    <img t-if="doc.company_id.logo" t-attf-src="/logo.png?company={{ doc.company_id.id }}" style="max-height: 275px; max-width: 320px;"/>
+                    </div>
+                    <div class="col" style="width: 35%; font-size: 100%; text-align: top; line-height: 140%;">
+                        <span><strong> Diproskin
+                           <br/>
+                            RFC: DIP010205ABC
+                           <br/>
+                            Tel.: 364578447
+                           <br/>
+                            AV. Primavera # 2836
+                        </strong></span>
+                    </div>
+                </div>
+                <br/>
+                <div class="col" style="width: 100%; font-size: 140%;">
+                        <span><strong><center>
+                            COPIA 2
+                        </center></strong></span>
+                </div>
+
+                <div class="col" style="width: 50%; font-size: 140%;">
+                        <span><strong>
+                            REMISIÓN:
+                        </strong></span>
+                        <span t-field="doc.name"/>
+                </div>
+
+
+                 <div class="col" style="width: 50%; font-size: 100%;">
+                        <span><strong>
+                            FECHA:
+                        </strong></span>
+                        <span t-field="doc.date_order"/>
+                </div>
+
+
+
+               <table class="table table-borderless" WIDTH="100%" style="padding: 0px; border-collapse: collapse; background-color:#F9F9F9;border-bottom:4px solid black;">
+                <tr style="border: 0px;">
+
+                  <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;font-weight: bold;">Nombre:</span>
+                  </td>
+                  <td WIDTH="45%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.name"/>
+                  </td>
+
+                  <td WIDTH="4%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;font-weight: bold;">Tels:</span>
+                  </td>
+                  <td WIDTH="15%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.phone"/>
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.mobile"/>
+                  </td>
+
+               </tr>
+
+               <tr style="border: 0px;">
+
+                 <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                   <span style="color:#000000; font-size: 100%;font-weight: bold;">Dirección:</span>
+                 </td>
+                 <td WIDTH="45%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.street"/>
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.street2"/>
+                      CP.
+                      <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.zip"/>
+                 </td>
+
+                 <td WIDTH="4%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                   <span style="color:#000000; font-size: 100%;font-weight: bold;">Edo:</span>
+                 </td>
+                 <td WIDTH="15%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.city"/>
+                     /
+                     <span style="color:#000000; font-size: 100%;" t-field="doc.partner_id.state_id.name"/>
+                     </td>
+               </tr>
+              </table>
+
+              <div t-if="doc.validity_date and doc.state in ['draft', 'sent']" class="col-auto col-3 mw-100 mb-2" name="expiration_date">
+                    <strong>Expiration:</strong>
+                    <p class="m-0" t-field="doc.validity_date"/>
+              </div>
+              <!-- Is there a discount on at least one line? -->
+              <t t-set="display_discount" t-value="any(l.discount for l in doc.order_line)"/>
+
+                <table class="table table-sm o_main_table">
+                  <!-- In case we want to repeat the header, remove "display: table-row-group" -->
+                 <thead style="display: table-row-group">
+                    <tr>
+                        <td WIDTH="8%" name="th_barcode" class="text-left"><STRONG>CÓDIGO</STRONG></td>
+                        <td WIDTH="10%" name="th_quantity" class="text-right"><STRONG>CANTIDAD</STRONG></td>
+                        <td WIDTH="50%" name="th_description" class="text-left"><STRONG>PRODUCTO</STRONG></td>
+                        <td name="th_priceunit" class="text-right"><STRONG>PRECIO</STRONG></td>
+                        <td name="th_discount" t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
+                            <span><STRONG>DESC.%</STRONG></span>
+                        </td>
+                        <!--<th name="th_taxes" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">Impuestos</th>-->
+                        <td name="th_subtotal" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                            <span groups="account.group_show_line_subtotals_tax_excluded"><STRONG>IMPORTE</STRONG></span>
+                            <span groups="account.group_show_line_subtotals_tax_included"><STRONG>TOTAL</STRONG></span>
+                        </td>
+
+
+
+                         <td name="th_subtotal" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                            <span><STRONG>PUBLICO</STRONG></span>
+
+                        </td>
+
+
+
+                    </tr>
+                 </thead>
+                 <tbody class="sale_tbody">
+
+                    <t t-set="current_subtotal" t-value="0"/>
+
+                    <t t-foreach="doc.order_line" t-as="line">
+
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                        <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+
+                        <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
+                            <t t-if="not line.display_type">
+                              <td name="td_barcode" style="padding: 2px;height: 1px;border-collapse: collapse"><span style="font-size: 90%" t-field="line.product_id.barcode"/></td>
+
+                                 <td name="td_quantity" class="text-center" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-field="line.product_uom_qty"/>
+                                   <!-- <span t-field="line.product_uom" groups="uom.group_uom"/>-->
+                                </td>
+
+                                <td name="td_name" style="padding: 2px;height: 1px;border-collapse: collapse"><span style="font-size: 90%" t-field="line.product_id.name"/></td>
+
+                                <td name="td_priceunit" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.price_unit"/>
+                                </td>
+                                <td t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.discount"/>
+                                </td>
+                               <!-- <td name="td_taxes" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.tax_id))"/>
+                                </td> -->
+                                <td name="td_subtotal" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                   <!-- <span style="font-size: 90%" t-field="line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                                    <span style="font-size: 90%" t-field="line.price_total" groups="account.group_show_line_subtotals_tax_included"/>-->
+
+                                    <span style="font-size: 90%" t-field="line.price_total"/>
+                                </td>
+
+
+
+
+                                 <td name="td_subtotal" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+
+
+                                    <span style="font-size: 90%" t-field="line.product_id.list_price"/>
+
+                                </td>
+
+
+
+
+
+
+
+                            </t>
+                            <t t-if="line.display_type == 'line_section'">
+                                <td name="td_section_line" colspan="99" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.name"/>
+                                </td>
+                                <t t-set="current_section" t-value="line"/>
+                                <t t-set="current_subtotal" t-value="0"/>
+                            </t>
+                            <t t-if="line.display_type == 'line_note'">
+                                <td name="td_note_line" colspan="99" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span style="font-size: 90%" t-field="line.name"/>
+                                </td>
+                            </t>
+                        </tr>
+
+                        <t t-if="current_section and (line_last or doc.order_line[line_index+1].display_type == 'line_section')">
+                            <tr class="is-subtotal text-right">
+                            </tr>
+                        </t>
+                    </t>
+                </tbody>
+            </table>
+
+
+            <div class="clearfix" name="so_total_summary">
+                <div id="total" class="row" name="total">
+                    <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+                      <div style="position:absolute;right:5mm;">
+                        <table class="table table-borderless" style="border-bottom:4px solid black">
+                            <!--<tr class="border-black o_subtotal" style="">-->
+                                 <!-- <td name="td_amount_untaxed_label" style="padding: 2px;height: 1px;border-collapse: collapse"><strong>Subtotal</strong></td>
+                                <td name="td_amount_untaxed" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-field="doc.amount_untaxed"/>
+                                </td>  -->
+                            <!--</tr>-->
+                            <!--<t t-foreach="doc.amount_by_group" t-as="amount_by_group">-->
+                            <!--    <tr style="">-->
+                                     <!-- <t t-if="amount_by_group[5] == 1 and doc.amount_untaxed == amount_by_group[2]">
+                                        <td name="td_amount_by_group_label_3" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[0]"/>
+                                            <span>&amp;nbsp;<span>on</span>&amp;nbsp;<t t-esc="amount_by_group[2]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: doc.pricelist_id.currency_id}"/></span>
+                                        </td>
+                                        <td name="td_amount_by_group_3" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[1]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: doc.pricelist_id.currency_id}"/>
+                                        </td>
+                                     </t>
+                                    <t t-else="">
+                                        <td name="td_amount_by_group_label" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[0]"/>
+                                        </td>
+                                        <td name="td_amount_by_group" class="text-right o_price_total" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                            <span t-esc="amount_by_group[1]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: doc.pricelist_id.currency_id}"/>
+                                        </td>
+                                    </t>-->
+                            <!--    </tr>-->
+                            <!--</t>-->
+                            <tr class="border-black o_total">
+                                <td name="td_amount_total_label" style="padding: 2px;height: 1px;border-collapse: collapse"><strong>Total</strong></td>
+                                <td name="td_amount_total" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                    <span t-field="doc.amount_total"/>
+                                </td>
+                            </tr>
+                        </table>
+                      </div>
+                    </div>
+                </div>
+            </div>
+              <br/>
+              <br/>
+              <br/>
+
+              <table class="table table-borderless" WIDTH="100%" style="padding: 0px; border-collapse: collapse; background-color:#F9F9F9;border-bottom:4px solid black">
+
+              <tr style="border: 0px;">
+
+                <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                   <span style="color:#000000; font-size: 70%; text-align: justify;">DEBO Y PAGARÉ INCONDICIONALMENTE A LA ORDEN DE
+                   <STRONG>GABRIEL HUERTA RIVERA</STRONG>
+                   EN ESTA CIUDAD O EN CUALQUIERA QUE SE ME ENCUENTRE EL DÍA <span t-field="doc.date_order"/> LA CANTIDAD DE <span t-field="doc.amount_total"/>
+                   VALOR DE LAS MERCANCIAS QUE HE RECIBIDO EN MI ENTERA SATISFACCIÓN. ESTE PAGARÉ ES MERCANTIL Y ESTA REGIDO POR LA LEY DE TITULOS Y OPERACIONES DE CRÉDITO
+                   EN SU ARTÍCULO 173 PARTE FINAL Y ARTÍCULOS CORRELATIVOS POR NO SER PAGARÉ DOMICILIADO. DE NO PAGAR A SU VECIMIENTO CAUSARÁ INTERES MORATORIO % DE MENSUAL
+                   DESDE SU VENCIMIENTO
+                   </span>
+
+                  <br/>
+                  <br/>
+
+                    <span style="color:#000000; font-size: 70%;text-align: justify;">
+                      ACEPTO <span t-field="doc.partner_id.name"/> FIRMA______________________________________
+                   </span>
+                </td>
+             </tr>
+             </table>
+
+            </t>
+      </t>
+    </template>
+</odoo>
