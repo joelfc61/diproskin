@@ -42,5 +42,7 @@ class SaleOrderLine(models.Model):
     def _onchange_barcode_scan(self):
         product_rec = self.env['product.product']
         if self.barcode_scan:
-            product = product_rec.search([('barcode', '=', self.barcode_scan)])
+            product = product_rec.search(['|',('barcode_ids.name', '=', self.barcode_scan), ('barcode', '=', self.barcode_scan)],limit=1)
+            # TODO REPLACE BY multi_barcode
+            # product = product_rec.search([('barcode', '=', self.barcode_scan)])
             self.product_id = product.id

@@ -10,6 +10,7 @@
     'license': 'LGPL-3',
     'depends': [
                 'sale_management',
+                'product_multiple_barcodes',
                 'hr',
                 ],
     'data': [
