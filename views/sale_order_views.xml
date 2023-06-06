@@ -20,7 +20,13 @@
             <xpath expr="//page/field[@name='order_line']/tree/field[@name='name']" position="before">
                 <field name="pricelist_id" string="Precio" optional="show"/>
             </xpath>
+            <xpath expr="//group[@name='sale_total']" position="after">
+                <group colspan="2" class='o_inner_group grid oe_subtotal_footer oe_right col-lg-4'>
+                    <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total_two">
+                        <field name="product_total"  readonly="1" colspan="2"/>
+                    </group>
+                </group>
+            </xpath>
         </field>
     </record>
-
 </odoo>
