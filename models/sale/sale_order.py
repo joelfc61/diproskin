@@ -12,7 +12,10 @@ class SaleOrder(models.Model):
     def action_print_so(self):
         return self.env.ref('diproskin.action_report_sale_remision').report_action(self)
 
+    @api.onchange("order_line")
     def _product_total(self):
         for order in self:
+            aux=0
             for product in order.order_line:
-                order.product_total+= product.product_uom_qty
+                aux += product.product_uom_qty
+            order.product_total = aux
