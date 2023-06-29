@@ -1,0 +1,18 @@
+stages:
+  - deploy
+
+variables:
+  GIT_STRATEGY: fetch
+
+deploy_to_server:
+  stage: deploy
+  before_script:
+    - 'command -v ssh-agent >/dev/null || ( apk add --update openssh )' 
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - ssh $SSH_USER@$SSH_HOST  "cd /odoo/custom/addons/CUSTOM/rsn/ && git config remote.origin.url https://$GIT_USER:$GIT_PASSWORD@git.holoserp.com/holos/projects/rsn.git  && git fetch --all && git reset --hard HEAD && git merge @{u} && sudo service odoo-server stop && cd /odoo/odoo-server && sudo -u odoo ./odoo-bin -c /etc/odoo-server.conf -u $PROJECT_MODULE -d $DB_NAME --stop-after-init && sudo service odoo-server start && exit"
