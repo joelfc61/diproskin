@@ -1,6 +1,7 @@
 
 from odoo import models, api, fields, _
 
+
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
@@ -15,7 +16,6 @@ class SaleOrderLine(models.Model):
             date = self.create_date
             price_unit = self.pricelist_id._get_product_price(product, qty, uom=uom, date=date)
             self.price_unit = price_unit
-
 
     @api.depends('product_id', 'product_uom', 'product_uom_qty')
     def _compute_pricelist_item_id(self):
