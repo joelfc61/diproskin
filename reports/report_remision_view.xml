@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="report_so_diproskin">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="doc">
+                <t t-foreach="[1,2]" t-as="label">
+                  <div name="documento">
+                    <div class="row" name="head">
+                      <div class="col" style="width: 65%;">
+                        <img t-if="doc.company_id.logo" t-attf-src="/logo.png?company={{ doc.company_id.id }}" style="max-height: 275px; max-width: 320px;"/>
+                      </div>
+                      <div class="col" style="width: 35%; font-size: 100%; text-align: top; line-height: 140%;">
+                        <span><strong> GABRIEL HUERTA RIVERA
+                           <br/>
+                            RFC: HURG6710095DA
+                           <br/>
+                            Tel.: 3315892391
+                           <br/>
+                             AVENIDA PATRIA #1150
+                        </strong></span>
+                      </div>
+                    </div>
+                    <br/>
+                    <div class="col" style="width: 100%; font-size: 140%;">
+                      <span>
+                        <strong>
+                          <center>
+                            <t t-if="label == 1">
+                              ORIGINAL
+                            </t>
+                            <t t-else="">
+                              COPIA 1
+                            </t>
+                          </center>
+                        </strong>
+                      </span>
+                    </div>
+    
+                    <div class="col" style="width: 50%; font-size: 140%;">
+                      <span>
+                        <strong>
+                          REMISIÓN:
+                        </strong>
+                      </span>
+                      <span t-field="doc.name"/>
+                    </div>
+    
+                    <div class="col" style="width: 50%; font-size: 100%;">
+                      <span>
+                        <strong>
+                          FECHA:
+                        </strong>
+                      </span>
+                      <span t-field="doc.date_order"/>
+                    </div>
+                    
+                    <div class="row" name="body">
+                      <div class="row">
+                        <table class="table table-borderless" WIDTH="100%" style="border-collapse: collapse; background-color:#F9F9F9;border-bottom:4px solid black;">
+                        <tr style="font-weight: bold;">
+                          <td>Nombre:</td>
+                          <td><span t-field="doc.partner_id.name"/></td>
+                          <td>Tels:</td>
+                          <td>
+                            <span t-field="doc.partner_id.phone"/>
+                            <span t-field="doc.partner_id.mobile"/>
+                          </td>
+                        </tr>
+                        <tr style="font-weight: bold;">
+                          <td>Dirección:</td>
+                          <td>
+                            <span t-field="doc.partner_id.street"/>
+                            <span t-field="doc.partner_id.street2"/>
+                            CP.
+                            <span t-field="doc.partner_id.zip"/>
+                          </td>
+                          <td>Edo:</td>
+                          <td>
+                            <span t-field="doc.partner_id.city"/>
+                            /
+                            <span t-field="doc.partner_id.state_id.name"/>
+                          </td>
+                        </tr>
+                      </table>
+                      </div>
+                      <div class="row">
+                        <div t-if="doc.validity_date and doc.state in ['draft', 'sent']" class="col-auto col-3 mw-100 mb-2" name="expiration_date">
+                          <strong>Expiration:</strong>
+                          <p class="m-0" t-field="doc.validity_date"/>
+                        </div>
+                      </div>
+                      <t t-set="display_discount" t-value="any(l.discount for l in doc.order_line)"/>
+                      <div class="row">
+                        <t t-set="suma" t-value="0"/>
+                        <table class="table table-sm o_main_table">
+                          <thead>
+                            <tr class="text-right">
+                              <th>CÓDIGO</th>
+                              <th>CANTIDAD</th>
+                              <th>PRODUCTO</th>
+                              <th>PRECIO</th>
+                              <th t-if="display_discount" groups="product.group_discount_per_so_line">
+                                DESC.%
+                              </th>
+                              <th>
+                                <span groups="account.group_show_line_subtotals_tax_excluded">IMPORTE</span>
+                                <span groups="account.group_show_line_subtotals_tax_included">TOTAL</span>
+                              </th>
+                              <th>PUBLICO</th>
+                            </tr>
+                          </thead>
+                          <tbody class="sale_tbody">
+                            <t t-set="current_subtotal" t-value="0"/>
+                            <tr t-foreach="doc.order_line" t-as="line" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                              <td><span style="font-size: 90%" t-field="line.product_id.barcode"/></td>
+                              <td>
+                                <span t-field="line.product_uom_qty"/>
+                                <t t-set="suma" t-value="suma + line.product_uom_qty"/>
+                              </td>
+                              <td>
+                                <span style="font-size: 90%" t-field="line.product_id.name"/>
+                              </td>
+                              <td>
+                                 <span style="font-size: 90%" t-field="line.price_unit"/>
+                              </td>
+                              <td t-if="display_discount" groups="product.group_discount_per_so_line">
+                                <span style="font-size: 90%" t-field="line.discount"/>
+                              </td>
+                              <td>
+                                <span style="font-size: 90%" t-field="line.price_total"/>
+                              </td>
+                              <td>
+                                <span style="font-size: 90%" t-field="line.product_id.list_price"/>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="row">
+                        <div class="clearfix" name="so_total_summary">
+                          <div id="total" class="row">
+                            <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+                              <div style="position:absolute;right:5mm;">
+                                <table class="table table-borderless" style="border-bottom:4px solid black">
+                                  <tr class="border-black o_total">
+                                    <td name="td_amount_total_label" style="padding: 2px;height: 1px;border-collapse: collapse"><strong>Total</strong></td>
+                                    <td name="td_amount_total" class="text-right" style="padding: 2px;height: 1px;border-collapse: collapse">
+                                        <span t-field="doc.amount_total"/>
+                                    </td>
+                                  </tr>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <table>
+                          <tr>
+                            <td style="padding: 5px;height: 1px;border-collapse: collapse">
+                              <strong>Piezas totales:  <span t-esc="suma" t-options="{&quot;widget&quot;: &quot;float&quot;, &quot;precision&quot;: 0}"/></strong>
+                            </td>
+                          </tr>
+                        </table>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <table class="table table-borderless" WIDTH="100%" style="padding: 0px; border-collapse: collapse; background-color:#F9F9F9;border-bottom:4px solid black">
+                          <tr style="border: 0px;">
+                            <td WIDTH="5%" style="padding: 1px;height: 1px; border-collapse: collapse;">
+                                 <span style="color:#000000; font-size: 70%; text-align: justify;">DEBO Y PAGARÉ INCONDICIONALMENTE A LA ORDEN DE
+                                 <STRONG>GABRIEL HUERTA RIVERA</STRONG>
+                                 EN ESTA CIUDAD O EN CUALQUIERA QUE SE ME ENCUENTRE EL DÍA <span t-field="doc.date_order"/> LA CANTIDAD DE <span t-field="doc.amount_total"/>
+                                 VALOR DE LAS MERCANCIAS QUE HE RECIBIDO EN MI ENTERA SATISFACCIÓN. ESTE PAGARÉ ES MERCANTIL Y ESTA REGIDO POR LA LEY DE TITULOS Y OPERACIONES DE CRÉDITO
+                                 EN SU ARTÍCULO 173 PARTE FINAL Y ARTÍCULOS CORRELATIVOS POR NO SER PAGARÉ DOMICILIADO. DE NO PAGAR A SU VECIMIENTO CAUSARÁ INTERES MORATORIO % DE MENSUAL
+                                 DESDE SU VENCIMIENTO
+                                 </span>
+              
+                                <br/>
+                                <br/>
+              
+                                  <span style="color:#000000; font-size: 70%;text-align: justify;">
+                                    ACEPTO <span t-field="doc.partner_id.name"/> FIRMA______________________________________
+                                 </span>
+                            </td>
+                          </tr>
+                        </table>
+                        
+                      </div>
+                    </div>
+                    <t t-if="label == 1">
+                      <p style="page-break-after: always;"/>
+                    </t>
+                  </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

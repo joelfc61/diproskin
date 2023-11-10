@@ -17,6 +17,8 @@
     'data': [
         # 'security/ir.model.access.csv',
         'report/report_sale_remision.xml',
+        'reports/actions_reports.xml',
+        'reports/report_remision_view.xml',
         'report/sale_views.xml',
         'views/sale_order_views.xml',
     ],
