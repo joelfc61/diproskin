@@ -3,7 +3,7 @@
     <template id="report_so_diproskin">
         <t t-call="web.basic_layout">
             <t t-foreach="docs" t-as="doc">
-                <t t-foreach="[1,2]" t-as="label">
+                <t t-foreach="[1,2,3]" t-as="label">
                   <div name="documento">
                     <div class="row" name="head">
                       <div class="col" style="width: 65%;">

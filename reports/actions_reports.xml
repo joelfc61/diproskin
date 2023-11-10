@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <record id="report_sale_order_template_diproskin" model="ir.actions.report">
+    <record id="action_report_so_diproskin" model="ir.actions.report">
         <field name="name">Remisión Diproskin</field>
         <field name="model">sale.order</field>
         <field name="report_type">qweb-pdf</field>

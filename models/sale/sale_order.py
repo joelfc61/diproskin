@@ -10,7 +10,7 @@ class SaleOrder(models.Model):
     product_total = fields.Integer(string='Total de Productos', compute='_product_total')
 
     def action_print_so(self):
-        return self.env.ref('diproskin.action_report_sale_remision').report_action(self)
+        return self.env.ref('diproskin.action_report_so_diproskin').report_action(self)
 
     @api.onchange("order_line")
     def _product_total(self):
