@@ -1,0 +1,24 @@
+<odoo>
+     <record id="product_template_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.template_inherit_diproskin</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view" /> 
+        <field name="arch" type="xml">
+        
+            <page name="general_information" position="before">
+               <page  string="Knobloch" name="Knobloch" >
+                    <group>
+                       <field name="status_kn"   />
+                       <field name="cod_prov_kn"   />
+                       <field name="cod_prod_kn"   />
+                       <field name="product_name_kn"   />
+                       <field name="presentacion_kn"   />
+                       <field name="precio_farmacia_kn"   />
+
+                     </group>
+                </page>
+            </page>  
+        </field>
+    </record>
+
+</odoo>

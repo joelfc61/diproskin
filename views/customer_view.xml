@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+     <record id="view_partner_form_inherit" model="ir.ui.view">
+        <field name="name">partner.form.inherit.diproskin</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+        
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="comm_name" class="text-break" placeholder="Teclear nombre comercial" />
+            </xpath>
+         
+           
+        </field>
+    </record>
+
+</odoo>
