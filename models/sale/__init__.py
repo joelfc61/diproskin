@@ -2,7 +2,7 @@
 # agregamos todos los archivos .py
 from . import sale_order
 from . import sale_order_line
-from . import comm_name
-from . import product_add
+from . import sale_order_delivery
+from . import sale_order_pick
 
  

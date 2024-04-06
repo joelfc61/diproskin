@@ -13,7 +13,7 @@
         'purchase',
         'sale_management',
         'product_multiple_barcodes',
-        'hr','product'
+        'hr','product',
     ], 
     'data': [
         # 'security/ir.model.access.csv',
@@ -22,8 +22,8 @@
         'reports/report_remision_view.xml',
         'report/sale_views.xml',
         'views/sale_order_views.xml',
-        'views/customer_view.xml',
-        'views/product_add_view.xml'
+        'views/res_partner_views.xml',
+        'views/product_template_views.xml'
     ],
     'qweb': [
     ],

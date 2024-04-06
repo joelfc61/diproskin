@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
         
             <xpath expr="//field[@name='name']" position="after">
-                <field name="comm_name" class="text-break" placeholder="Teclear nombre comercial" />
+                <field name="comm_name" class="text-break" placeholder="Nombre comercial" />
             </xpath>
          
            
